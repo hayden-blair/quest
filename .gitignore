@@ -1,0 +1,46 @@
+# ---- Terraform ----
+# Local state and backups (may contain secrets; never commit)
+*.tfstate
+*.tfstate.*
+# Crash log
+crash.log
+crash.*.log
+# Provider plugins and lock/module cache
+.terraform/
+.terraform.lock.hcl
+# Saved plan output
+*.tfplan
+# Variable files that may hold secrets. terraform.tfvars in this project
+# holds only non-secret config (host + job IDs) and IS committed intentionally,
+# so it is not ignored here. Ignore any auto-loaded or override var files:
+*.auto.tfvars
+*.auto.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ---- Lambda build artifacts ----
+build/
+*.zip
+
+# ---- Local test output ----
+response.json
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# ---- OS / editor cruft ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ---- Secrets (belt and suspenders) ----
+# Never commit tokens or credentials
+*.pem
+.env
