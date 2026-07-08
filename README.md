@@ -15,7 +15,7 @@ and in response to S3 events.
 |------|--------------|------------------|
 | 1 | Sync the BLS `pr` time-series dataset to S3, kept in step with the source | `part_1.ipynb` |
 | 2 | Fetch DataUSA population data and save it as JSON in S3 | `part_2.ipynb` |
-| 3 | Analytics: population mean/stddev, best year per series, and a joined series/population report | `part_3.ipynb` (run output in `part_3_with_outputs.ipynb`, dashboard [hosted in databricks](https://dbc-d7c86cfc-8b91.cloud.databricks.com/dashboardsv3/01f17a61f4f81b66b9a30c3067a8bb54/published?o=7474658082867441) and dashboard snapshot at `part_3_analysis_dashboard.pdf`) |
+| 3 | Analytics: population mean/stddev, best year per series, and a joined series/population report | `part_3.ipynb` (run output in `part_3_with_outputs.ipynb`, dashboard in `part_3_analysis_dashboard.pdf`) |
 | 4 | Terraform data pipeline (scheduled Lambda, S3-to-SQS notification, consumer Lambda) | `part_4/` |
 
 Shared PySpark helper functions used across the notebooks live in
@@ -220,3 +220,18 @@ task.
 - **Part 4 details:** the `part_4/README.md` documents the Terraform resources,
   the least-privilege IAM design, how the Databricks token is kept out of source
   and state, and exactly what must exist on the Databricks side.
+
+## Use of AI assistance
+
+This submission was developed with AI assistance (Anthropic's Claude), used as a
+drafting, pairing, and review aid throughout. That assistance spanned the
+documentation (this README and `part_4/README.md`), the Terraform configuration
+in `part_4/`, and the code in the Databricks notebooks, including the Part 1
+BLS-to-S3 sync and its manifest-tracking logic.
+
+I directed the work throughout: I made the architecture decisions, ran and
+debugged every deployment and notebook (catching and fixing bugs along the way),
+validated behavior against live data, and reviewed every file before including
+it. AI output was a starting point to evaluate, test, and edit rather than a
+finished product, and I can speak to the reasoning behind any part of the
+submission.
