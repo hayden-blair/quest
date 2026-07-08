@@ -92,18 +92,21 @@ exist on the Databricks side for the pipeline to run.
 The dataset in S3 is the deliverable for Part 1, so the bucket is publicly
 readable by the reviewers.
 
-**Browse the full bucket listing:**
+**Key files (direct download):**
 
-```
-https://rearc-quest-107628756615-us-east-2-an.s3.us-east-2.amazonaws.com/?list-type=2
-```
-
-**Example objects (direct download):**
-
-- DataUSA population JSON (Part 2 output):
-  `https://rearc-quest-107628756615-us-east-2-an.s3.us-east-2.amazonaws.com/datausa/annual_us_pop_2013_thru_2024.json`
-- BLS `pr` current time-series (Part 1, used in Part 3):
+- BLS `pr` current time-series (Part 1, consumed by Part 3):
   `https://rearc-quest-107628756615-us-east-2-an.s3.us-east-2.amazonaws.com/bls-data/pr/pr.data.0.Current`
+- DataUSA population JSON (Part 2 output, consumed by Part 3):
+  `https://rearc-quest-107628756615-us-east-2-an.s3.us-east-2.amazonaws.com/datausa/annual_us_pop_2013_thru_2024.json`
+
+The complete BLS `pr` dataset (all series, mappings, and documentation files)
+is republished under the `bls-data/pr/` prefix.
+
+**Browse every object:** the following URL returns a listing of the full bucket
+contents as an S3 XML document (the native S3 listing format, not a styled web
+page):
+
+`https://rearc-quest-107628756615-us-east-2-an.s3.us-east-2.amazonaws.com/?list-type=2`
 
 Read access is granted through a scoped **bucket policy** allowing
 `s3:GetObject` and `s3:ListBucket`, rather than through object ACLs. This is the
