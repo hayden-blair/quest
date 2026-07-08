@@ -23,8 +23,8 @@ Shared PySpark helper functions used across the notebooks live in
 
 ## Data link (Part 1)
 
-The republished BLS dataset is publicly readable in S3. Clickable browse and
-download links are in the [Access to the data](#access-to-the-data) section
+The republished BLS dataset is publicly readable in S3. Browse and
+download urls are in the [Access to the data](#access-to-the-data) section
 below.
 
 ## Architecture decisions
