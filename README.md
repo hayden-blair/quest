@@ -15,7 +15,7 @@ and in response to S3 events.
 |------|--------------|------------------|
 | 1 | Sync the BLS `pr` time-series dataset to S3, kept in step with the source | `part_1.ipynb` |
 | 2 | Fetch DataUSA population data and save it as JSON in S3 | `part_2.ipynb` |
-| 3 | Analytics: population mean/stddev, best year per series, and a joined series/population report | `part_3.ipynb` (run output in `part_3_with_outputs.ipynb`, dashboard in `part_3_analysis_dashboard.pdf`) |
+| 3 | Analytics: population mean/stddev, best year per series, and a joined series/population report | `part_3.ipynb` (run output in `part_3_with_outputs.ipynb`, dashboard [hosted in databricks](https://dbc-d7c86cfc-8b91.cloud.databricks.com/dashboardsv3/01f17a61f4f81b66b9a30c3067a8bb54/published?o=7474658082867441) and dashboard snapshot at `part_3_analysis_dashboard.pdf`) |
 | 4 | Terraform data pipeline (scheduled Lambda, S3-to-SQS notification, consumer Lambda) | `part_4/` |
 
 Shared PySpark helper functions used across the notebooks live in
@@ -23,8 +23,8 @@ Shared PySpark helper functions used across the notebooks live in
 
 ## Data link (Part 1)
 
-The republished BLS dataset is publicly readable in S3. Browse and
-download urls are in the [Access to the data](#access-to-the-data) section
+The republished BLS dataset is publicly readable in S3. Clickable browse and
+download links are in the [Access to the data](#access-to-the-data) section
 below.
 
 ## Architecture decisions
@@ -68,10 +68,6 @@ submission rather than click-configured state.
   Lambda would mean either packaging Spark into Lambda (awkward) or rewriting in
   pandas (discarding the Spark work the quest is assessing). Triggering
   Databricks is the more natural execution model for this analysis.
-- **The quest sets a floor, not a ceiling.** "Just logging the results of the
-  queries would be enough" establishes a minimum output bar. Using Databricks as
-  the compute layer clears that bar with richer, more production-representative
-  tooling.
 
 ### The tradeoff, stated honestly
 
@@ -86,6 +82,77 @@ Databricks-centric data platform already hosts the workspace and jobs, so
 orchestrating them from lightweight Lambdas is a sensible division of labor
 rather than an added burden. The `part_4/README.md` documents exactly what must
 exist on the Databricks side for the pipeline to run.
+
+### Deployment scope: this is not a single-command deployment
+
+To be explicit: this submission does **not** stand up the entire architecture
+from one `terraform apply`. The Terraform in `part_4/` provisions the AWS side of
+the pipeline (Lambdas, IAM, SQS, the S3 notification, and the schedule), but the
+following are set up outside that run:
+
+- The two Databricks Jobs are created from the definitions in
+  `part_4/databricks_jobs/`, and their numeric IDs are then hand-entered into
+  `terraform.tfvars`. (The jobs reference the notebooks directly from the public
+  Git repository, so there is no manual notebook-import step.)
+- The Databricks-to-S3 access (so the jobs can read and write the bucket) is
+  configured in the workspace.
+- The Databricks token is generated in the workspace and placed into Secrets
+  Manager via the CLI.
+
+So the deployable unit here is the AWS orchestration layer, against an
+already-provisioned Databricks workspace. The section below describes what it
+would take to close the gap toward a genuinely one-command deployment, and why
+part of that gap is inherent rather than incidental.
+
+## Path to one-click deployment
+
+Bringing this closer to a single-command deploy is a realistic and worthwhile
+next step. It breaks into three pieces, roughly in order of effort:
+
+**1. Parameterize the notebooks.** The notebooks currently carry
+configuration (bucket name, key prefixes) inline. Exposing these as
+`dbutils.widgets` parameters would let the job definitions pass values in at
+runtime, so the same notebooks work across environments without edits. This is
+the prerequisite for treating the whole project as one parameterized,
+environment-agnostic deployable unit.
+
+**2. Deploy the notebooks and jobs as code with Declarative Automation
+Bundles.** Databricks' bundle tooling (Declarative Automation Bundles, formerly
+Databricks Asset Bundles) describes notebooks and jobs as source files deployed
+together as one unit. The job definitions already exist as YAML in
+`part_4/databricks_jobs/`, which is most of the way to bundle resource
+definitions; moving existing jobs into a bundle is a documented migration path.
+A bundle (`databricks.yml`) would deploy both the notebooks and the jobs to the
+workspace from source with `databricks bundle deploy`. That removes the manual
+"create the jobs, copy their IDs into tfvars" step, the job identities would flow
+from the bundle rather than being hand-entered. This is the single
+highest-leverage change.
+
+**3. Manage Databricks-to-S3 connectivity with the Databricks Terraform
+provider.** The Databricks provider can manage the workspace-side access objects
+Unity Catalog uses for S3: a `databricks_storage_credential` (wrapping the AWS
+IAM role that grants bucket access) and a `databricks_external_location` (binding
+that credential to the bucket path). Both are first-class Terraform resources, so
+folding this into the Terraform run would remove the manual access-configuration
+step. On older, non-Unity-Catalog workspaces the equivalent is an instance
+profile attached to the cluster.
+
+### Why full one-click is a larger claim than it appears
+
+Even with all three in place, "one command from nothing" runs into an inherent
+boundary: the Databricks **workspace itself** must already exist, with
+cross-account trust established between Databricks and this AWS account.
+Provisioning a workspace and its AWS cross-account role is a one-time,
+heavier-weight operation (and on many teams a governed, centrally-owned one),
+not something typically bundled into an application pipeline's deploy.
+
+So the honest target is **one command deploys the full pipeline into an
+existing, connected Databricks workspace**, chaining a `databricks bundle
+deploy` (notebooks, jobs, connectivity) with a `terraform apply` (AWS
+orchestration), ideally behind a single wrapper script or CI job. That is an
+achievable and clean end state. "One command including standing up the
+workspace from zero" is a different and much larger scope, and conflating the
+two would overstate what any compact submission realistically delivers.
 
 ## Access to the data
 
