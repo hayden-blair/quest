@@ -23,12 +23,9 @@ Shared PySpark helper functions used across the notebooks live in
 
 ## Data link (Part 1)
 
-The republished BLS dataset is available in S3 here:
-
-`s3://rearc-quest-107628756615-us-east-2-an/`
-
-(Replace with the exact console or object URL you are sharing. The bucket is
-readable via a scoped bucket policy; see "Access to the data" below.)
+The republished BLS dataset is publicly readable in S3. Clickable browse and
+download links are in the [Access to the data](#access-to-the-data) section
+below.
 
 ## Architecture decisions
 
@@ -92,8 +89,23 @@ exist on the Databricks side for the pipeline to run.
 
 ## Access to the data
 
-The dataset in S3 is the deliverable for Part 1, so the bucket is readable by the
-reviewers. Read access is granted through a scoped **bucket policy** allowing
+The dataset in S3 is the deliverable for Part 1, so the bucket is publicly
+readable by the reviewers.
+
+**Browse the full bucket listing:**
+
+```
+https://rearc-quest-107628756615-us-east-2-an.s3.us-east-2.amazonaws.com/?list-type=2
+```
+
+**Example objects (direct download):**
+
+- DataUSA population JSON (Part 2 output):
+  `https://rearc-quest-107628756615-us-east-2-an.s3.us-east-2.amazonaws.com/datausa/annual_us_pop_2013_thru_2024.json`
+- BLS `pr` current time-series (Part 1, used in Part 3):
+  `https://rearc-quest-107628756615-us-east-2-an.s3.us-east-2.amazonaws.com/bls-data/pr/pr.data.0.Current`
+
+Read access is granted through a scoped **bucket policy** allowing
 `s3:GetObject` and `s3:ListBucket`, rather than through object ACLs. This is the
 current AWS-recommended mechanism for shared read access and keeps object
 ownership enforced and ACLs disabled. The data is open BLS data being
