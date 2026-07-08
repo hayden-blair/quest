@@ -1,0 +1,22 @@
+resources:
+  jobs:
+    parts_1_and_2:
+      name: parts_1_and_2
+      tasks:
+        - task_key: part_1
+          notebook_task:
+            notebook_path: part_1
+            source: GIT
+        - task_key: part_2
+          depends_on:
+            - task_key: part_1
+          notebook_task:
+            notebook_path: part_2
+            source: GIT
+      git_source:
+        git_url: https://github.com/hayden-blair/quest.git
+        git_provider: gitHub
+        git_branch: main
+      queue:
+        enabled: true
+      performance_target: PERFORMANCE_OPTIMIZED
